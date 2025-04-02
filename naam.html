@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAAM - The Jaap Counter</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            margin: 50px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+        }
+        .counter-container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+            max-width: 450px;
+            margin: auto;
+            backdrop-filter: blur(10px);
+        }
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            width: 250px;
+            height: auto;
+        }
+        .mantra-display {
+            font-size: 26px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #ffcc00;
+        }
+        .count, .total-count, .lifetime-count, .session-timer {
+            font-size: 22px;
+            margin: 15px 0;
+        }
+        .progress {
+            width: 100%;
+            height: 20px;
+            background: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #ffcc00;
+            transition: width 0.3s ease-in-out;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .chant-btn {
+            background: #ffcc00;
+            color: black;
+            font-size: 28px;
+            padding: 20px 40px;
+            border: none;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: 0.3s;
+        }
+        .chant-btn:hover { background: #ffdd33; }
+        .reset-container {
+            margin-top: 20px;
+        }
+        .reset-btn {
+            background: #ff4444;
+            color: white;
+            font-size: 18px;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: 0.3s;
+            margin: 5px;
+        }
+        .reset-btn:hover { background: #ff6666; }
+        select {
+            width: 100%;
+            font-size: 18px;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            background: #ffcc00;
+            color: black;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="counter-container">
+        <div class="logo-container">
+            <img src="logo_for_NAAM.png" alt="NAAM - The Jaap Counter" class="logo">
+        </div>
+        <label for="mantra">Select Mantra:</label>
+        <select id="mantra">
+            <option value="Om Namah Shivay">Om Namah Shivay</option>
+            <option value="ॐ कृष्णाय वासुदेवाय हरये परमात्मने | प्रणतः क्लेशनाशाय गोविंदाय नमो नमः">ॐ कृष्णाय वासुदेवाय हरये परमात्मने | प्रणतः क्लेशनाशाय गोविंदाय नमो नमः</option>
+            <option value="Om">Om</option>
+            <option value="Ho'oponopono Prayer">Ho'oponopono Prayer - I am sorry, Please forgive me, Thank you, Love you</option>
+        </select>
+        <p class="mantra-display" id="selectedMantra"></p>
+        <div class="session-timer">Session Time: <span id="timer">00:00</span></div>
+        <div class="count">Chants: <span id="count">0</span>/108</div>
+        <div class="total-count">Total Rounds Completed: <span id="totalCount">0</span></div>
+        <div class="lifetime-count">Lifetime Chants: <span id="lifetimeCount">0</span></div>
+        <div class="progress">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="button-container">
+            <button class="chant-btn" onclick="incrementCount()">Chant</button>
+        </div>
+        <div class="reset-container">
+            <button class="reset-btn" onclick="resetSession()">Reset Session</button>
+            <button class="reset-btn" onclick="resetLifetime()">Reset Lifetime</button>
+        </div>
+    </div>
+
+    <script>
+        let count = 0;
+        let totalCount = localStorage.getItem("totalCount") ? parseInt(localStorage.getItem("totalCount")) : 0;
+        let lifetimeCount = localStorage.getItem("lifetimeCount") ? parseInt(localStorage.getItem("lifetimeCount")) : 0;
+        let timerStarted = false;
+        let seconds = 0;
+        let timerInterval;
+
+        document.getElementById('totalCount').innerText = totalCount;
+        document.getElementById('lifetimeCount').innerText = lifetimeCount;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const mantraSelect = document.getElementById('mantra');
+            const selectedMantraDisplay = document.getElementById('selectedMantra');
+
+            const savedMantra = localStorage.getItem("selectedMantra") || mantraSelect.value;
+            mantraSelect.value = savedMantra;
+            selectedMantraDisplay.innerText = savedMantra;
+
+            mantraSelect.addEventListener('change', function() {
+                selectedMantraDisplay.innerText = this.value;
+                localStorage.setItem("selectedMantra", this.value);
+            });
+        });
+
+        function startTimer() {
+            if (!timerStarted) {
+                timerStarted = true;
+                timerInterval = setInterval(() => {
+                    seconds++;
+                    let mins = Math.floor(seconds / 60);
+                    let secs = seconds % 60;
+                    document.getElementById('timer').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+                }, 1000);
+            }
+        }
+
+        function incrementCount() {
+            startTimer();
+            if (count < 108) {
+                count++;
+                lifetimeCount++;
+                document.getElementById('count').innerText = count;
+                document.getElementById('lifetimeCount').innerText = lifetimeCount;
+                document.getElementById('progress-bar').style.width = (count / 108 * 100) + '%';
+                localStorage.setItem("lifetimeCount", lifetimeCount);
+            }
+            if (count === 108) {
+                totalCount++;
+                document.getElementById('totalCount').innerText = totalCount;
+                localStorage.setItem("totalCount", totalCount);
+                resetSession();
+            }
+        }
+
+        function resetSession() {
+            count = 0;
+            seconds = 0;
+            clearInterval(timerInterval);
+            timerStarted = false;
+            document.getElementById('count').innerText = count;
+            document.getElementById('timer').innerText = "00:00";
+            document.getElementById('progress-bar').style.width = '0%';
+        }
+
+        function resetLifetime() {
+            count = 0;
+            totalCount = 0;
+            lifetimeCount = 0;
+            resetSession();
+            localStorage.clear();
+            document.getElementById('totalCount').innerText = totalCount;
+            document.getElementById('lifetimeCount').innerText = lifetimeCount;
+        }
+    </script>
+</body>
+</html>
